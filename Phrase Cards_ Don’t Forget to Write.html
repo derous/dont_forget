@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Phrase Cards: Don’t Forget to Write</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#e9f2f3;--card:#fffdf8;--ink:#14313a;--mute:#5b747b;--accent:#d93a73;--gold:#f0b73e;--line:#c6d9dc;--ok:#1f8a5b;--bad:#c2412d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f2228;--card:#18323a;--ink:#eaf3f4;--mute:#9bb5bb;--accent:#ff6b9a;--gold:#f0b73e;--line:#2c4a53;--ok:#4cc790;--bad:#ff8a74;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f2228;--card:#18323a;--ink:#eaf3f4;--mute:#9bb5bb;--accent:#ff6b9a;--gold:#f0b73e;--line:#2c4a53;--ok:#4cc790;--bad:#ff8a74;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 "DM Sans",system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font:400 clamp(28px,7vw,40px)/1.1 "DM Serif Display",Georgia,serif;margin:8px 0 2px}
+.sub{color:var(--mute);margin:0 0 18px}
+.sets,.modes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+.chip{border:2px solid var(--line);background:transparent;border-radius:999px;padding:6px 14px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible,.btn:focus-visible,.card:focus-visible,.opt:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:6px 0 16px}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.meta{display:flex;justify-content:space-between;color:var(--mute);font-size:15px}
+.card{display:block;width:100%;text-align:center;background:var(--card);border:2px solid var(--ink);border-radius:20px;box-shadow:6px 6px 0 var(--gold);min-height:340px;padding:28px 22px;cursor:pointer}
+.card .emoji{font-size:72px;line-height:1.1}
+.card .w{font:400 clamp(30px,8vw,42px)/1.15 "DM Serif Display",Georgia,serif;margin:14px 0 6px}
+.tag{display:inline-block;color:var(--mute);font-size:15px;font-style:italic}
+.hint{margin-top:26px;color:var(--mute);font-size:14px}
+.back{text-align:left}
+.back .w{font-size:28px;margin:0 0 4px}
+.back h3{margin:16px 0 2px;font-size:15px;color:var(--accent)}
+.back p{margin:0}
+mark{background:linear-gradient(transparent 55%,color-mix(in srgb,var(--gold) 70%,transparent) 55%);color:inherit;font-weight:700}
+.gap{display:inline-block;min-width:90px;border-bottom:3px solid var(--accent)}
+.row{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;padding:12px;border:2px solid var(--ink);border-radius:14px;background:var(--card);font-weight:700}
+.btn.p{background:var(--ink);color:var(--bg)}
+.btn.sm{flex:0 0 auto;padding:8px 14px;font-weight:500;border-color:var(--line)}
+.list{display:grid;gap:12px}
+.item{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px}
+.item summary{cursor:pointer;font:400 22px/1.3 "DM Serif Display",Georgia,serif;list-style:none}
+.item summary::-webkit-details-marker{display:none}
+.item .tag{font-family:"DM Sans",sans-serif}
+.q{background:var(--card);border:2px solid var(--ink);border-radius:20px;padding:22px 20px;box-shadow:6px 6px 0 var(--gold);font-size:20px;line-height:1.5}
+.opts{display:grid;gap:10px;margin-top:16px}
+.opt{text-align:left;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);font-weight:500}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}
+.opt.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,var(--card))}
+.fb{margin-top:14px;padding:12px 14px;border-left:5px solid var(--accent);background:var(--card);border-radius:0 12px 12px 0}
+.score{text-align:center;padding:36px 16px;background:var(--card);border:2px solid var(--ink);border-radius:20px;box-shadow:6px 6px 0 var(--gold)}
+.score b{font:400 56px "DM Serif Display",Georgia,serif;display:block}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Phrase Cards</h1>
+  <p class="sub" id="sub"></p>
+  <div class="sets" id="sets" role="group" aria-label="Sets"></div>
+  <div class="modes" id="modes" role="group" aria-label="Mode"></div>
+  <div id="view"></div>
+</main>
+<script>
+/* ADD A NEW SET: push another object into SETS with the same shape.
+   In "alt", wrap the target phrase in {{double braces}}. */
+const SETS = [
+{id:"ch1", title:"Chapter 1", book:"Don’t Forget to Write", items:[
+{w:"on thin ice", pos:"idiom", e:"🧊", def:"in a risky situation where one more mistake could get you into serious trouble.",
+ book:"Marilyn has already annoyed her parents, so she knows she has to behave in the synagogue.",
+ alt:"After being late three times this month, Jake {{is on thin ice}} with his manager."},
+{w:"fair game", pos:"idiom", e:"🎯", def:"a person or thing that it is acceptable to chase, criticize or make fun of.",
+ book:"She sets herself a test: if the boy turns around in time, he is someone she can flirt with.",
+ alt:"Once politicians enter public life, their voting records are {{fair game}} for journalists."},
+{w:"if you know what’s good for you", pos:"idiom", e:"🧠", def:"if you are sensible enough to do what is best for yourself. It often sounds like a warning.",
+ book:"She is confident the boy will not keep her waiting, because he would be foolish to try.",
+ alt:"She’d better apologize to the boss {{if she knows what’s good for her}}."},
+{w:"get an eyeful", pos:"informal", e:"👀", def:"to see something striking or surprising, often something you are not supposed to see.",
+ book:"She crosses her legs on purpose so the boy sees more than he should.",
+ alt:"The window was wide open, so the neighbors {{got an eyeful}} of our argument."},
+{w:"lose your mind", pos:"informal", e:"🤯", def:"to become extremely angry or upset.",
+ book:"Her strict father would be furious at the very idea of her studying in a mixed-gender class.",
+ alt:"My mom is going to {{lose her mind}} when she finds out I scratched the car."},
+{w:"make out", pos:"informal, mainly US", e:"💋", def:"to kiss and touch someone romantically for a long time.",
+ book:"Moments before the disaster, she jokes about the embarrassing ways a person could die in a rabbi’s office.",
+ alt:"The movie theater was half empty, and the couple in the back row spent the whole film {{making out}}."},
+{w:"drone on", pos:"phrasal verb", e:"🥱", def:"to talk for a long time in a flat, boring voice.",
+ book:"The rabbi’s sermon is so dull that his own son says he never even looks up from his notes.",
+ alt:"The professor {{droned on}} for two hours, and half the class fell asleep."},
+{w:"dreamy", pos:"adjective, informal, old-fashioned", e:"😍", def:"very attractive, in a way that makes you sigh.",
+ book:"She finds a young politician on the news so good-looking that she doesn’t mind hearing about the election.",
+ alt:"All my friends thought the new drama teacher was {{dreamy}}."},
+{w:"demure", pos:"adjective", e:"😇", def:"quiet, modest and polite. It is often used ironically about someone who is only pretending.",
+ book:"She walks out looking perfectly well-behaved, while secretly planning to meet a boy.",
+ alt:"She gave a {{demure}} little smile, but everyone knew she had planned the whole prank."},
+{w:"holy of holies", pos:"noun, formal or humorous", e:"🕍", def:"the most sacred part of a temple. Jokingly, it can mean a private place where ordinary people are not allowed.",
+ book:"She wonders whether she is the first woman ever to enter the rabbi’s private office.",
+ alt:"The CEO’s office is {{the holy of holies}}: nobody goes in without an invitation."},
+{w:"nonnegotiable", pos:"adjective", e:"🔒", def:"impossible to change or discuss; not open to compromise.",
+ book:"Attending services on Saturday mornings was a rule she couldn’t escape, however late she had stayed out.",
+ alt:"For me, a full night’s sleep is {{nonnegotiable}}, even during exams."},
+{w:"Peter Pan collar", pos:"noun, fashion", e:"👚", def:"a flat, rounded collar, typical of children’s clothes and vintage styles.",
+ book:"Her dress looks too childish for her age, but it is the safe choice for religious services.",
+ alt:"She paired a black sweater with a white {{Peter Pan collar}} for a retro look."},
+{w:"Good gracious!", pos:"exclamation, old-fashioned", e:"😲", def:"a mild, polite way of showing surprise or shock.",
+ book:"She uses it to act like an innocent angel while she flirts.",
+ alt:"“{{Good gracious}}, is that the time? I’ll miss my train!”"}
+]},
+{id:"ch2", title:"Chapter 2", book:"Don’t Forget to Write", items:[
+{w:"rant", pos:"verb", e:"🗣️", def:"to talk or shout angrily for a long time about something.",
+ book:"Downstairs, her father is still furious, and she can hear him going on and on about what happened.",
+ alt:"My uncle {{ranted}} about the traffic for the whole dinner."},
+{w:"easier said than done", pos:"idiom", e:"🏋️", def:"used to say that something sounds simple but is actually difficult to do.",
+ book:"She would rather rescue herself than wait for a prince, but in 1960 that was not simple for a young woman.",
+ alt:"“Just quit your job and travel.” “That’s {{easier said than done}} when you have rent to pay.”"},
+{w:"come to think of it", pos:"phrase", e:"💡", def:"used when you suddenly remember or realize something while you are talking or thinking.",
+ book:"Sitting in her childhood bedroom, she suddenly realizes it’s time to redecorate.",
+ alt:"{{Come to think of it}}, I haven’t seen Tom since the party."},
+{w:"telltale", pos:"adjective", e:"🔍", def:"revealing something that someone is trying to hide, or showing that something is happening.",
+ book:"She recognizes the sounds of lunch being prepared, which tell her the argument is over.",
+ alt:"The {{telltale}} smell of smoke told us someone had been smoking in the room."},
+{w:"overrated", pos:"adjective", e:"📉", def:"considered to be better or more important than it really is.",
+ book:"She decides that princes are not as wonderful as fairy tales make them seem.",
+ alt:"Honestly, I think that restaurant is {{overrated}}. The food was average."},
+{w:"go for broke", pos:"idiom, informal", e:"🎰", def:"to risk everything in an attempt to get what you want.",
+ book:"She considers saying something outrageous to the rabbi, but she holds back.",
+ alt:"It’s the last minute of the game, so the coach decided to {{go for broke}}."},
+{w:"it takes two to tango", pos:"idiom", e:"💃", def:"used to say that when something goes wrong, both people involved are responsible.",
+ book:"She argues that if a kiss happened, the boy cannot take all of the blame.",
+ alt:"Don’t blame only Sam for the fight. {{It takes two to tango}}."},
+{w:"save face", pos:"idiom", e:"🎭", def:"to avoid being embarrassed or losing other people’s respect.",
+ book:"She tells the adults that their wish to protect their reputation is not a good reason to marry her off.",
+ alt:"He blamed the traffic to {{save face}} after arriving an hour late."},
+{w:"like watching paint dry", pos:"idiom, humorous", e:"🎨", def:"extremely boring.",
+ book:"She jokes that the rabbi’s sermon was as thrilling as this, so it’s his fault they are in trouble.",
+ alt:"The lecture was {{like watching paint dry}}, and I nearly fell asleep."},
+{w:"… to save your life", pos:"idiom, informal", e:"🤷", def:"used after “can’t” or “couldn’t” to emphasize that you are completely unable to do something.",
+ book:"She says she can’t join the circus because she is hopeless at walking a tightrope.",
+ alt:"I can’t cook {{to save my life}}, so we always order takeout."},
+{w:"for goodness’ sake", pos:"exclamation", e:"🙄", def:"used to show that you are annoyed, impatient or surprised.",
+ book:"She is irritated at being punished like a child at the age of twenty.",
+ alt:"{{For goodness’ sake}}, put your phone away and listen to me!"},
+{w:"mean well", pos:"phrase", e:"🤝", def:"to have good intentions, even if the result is not helpful.",
+ book:"She tells the boy she believes his proposal is kindly meant, but he should simply invite her on a date.",
+ alt:"My aunt {{means well}}, but her advice about my career is usually unhelpful."},
+{w:"a step too far", pos:"idiom", e:"🚧", def:"an action that goes beyond what is acceptable.",
+ book:"Her comment shocks her mother so much in front of the rabbi that she faints.",
+ alt:"The joke was funny until he mentioned her divorce. That was {{a step too far}}."}
+]}
+];
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const hl=s=>esc(s).replace(/\{\{(.+?)\}\}/g,"<mark>$1</mark>");
+const gap=s=>esc(s).replace(/\{\{(.+?)\}\}/g,'<span class="gap"></span>');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const S={set:0,mode:"cards",i:0,flip:false,order:[],known:new Set(),q:[],qi:0,score:0,answered:null};
+const MODES=[["cards","Flashcards"],["browse","Browse"],["quiz","Quiz"]];
+
+function init(){
+  $("#sets").innerHTML=SETS.map((s,i)=>`<button class="chip" data-set="${i}" aria-pressed="${i==S.set}">${esc(s.title)}</button>`).join("");
+  $("#modes").innerHTML=MODES.map(m=>`<button class="chip" data-mode="${m[0]}" aria-pressed="${m[0]==S.mode}">${m[1]}</button>`).join("");
+  const set=SETS[S.set];
+  $("#sub").textContent=`${set.book} · ${set.items.length} expressions`;
+}
+function reset(){
+  const n=SETS[S.set].items.length;
+  S.order=[...Array(n).keys()];S.i=0;S.flip=false;S.known=new Set();
+  S.q=shuffle(S.order);S.qi=0;S.score=0;S.answered=null;
+}
+function render(){init();({cards,browse,quiz})[S.mode]()}
+
+function cards(){
+  const set=SETS[S.set],n=S.order.length,it=set.items[S.order[S.i]];
+  const face=S.flip?`<div class="back"><div class="w">${esc(it.w)}</div><span class="tag">${esc(it.pos)}</span>
+    <h3>Meaning</h3><p>${esc(it.def[0].toUpperCase()+it.def.slice(1))}</p>
+    <h3>In the book</h3><p>${esc(it.book)}</p>
+    <h3>Another example</h3><p>${hl(it.alt)}</p></div>`
+   :`<div class="emoji" aria-hidden="true">${it.e}</div><div class="w">${esc(it.w)}</div><span class="tag">${esc(it.pos)}</span><div class="hint">Tap to see the meaning</div>`;
+  $("#view").innerHTML=`<div class="meta"><span>Card ${S.i+1} of ${n}</span><span>${S.known.size} marked as known</span></div>
+  <div class="bar"><i style="width:${(S.i+1)/n*100}%"></i></div>
+  <button class="card" id="card" aria-label="Flip card">${face}</button>
+  <div class="row"><button class="btn" id="prev">Back</button><button class="btn" id="learn">Still learning</button><button class="btn p" id="know">Got it</button></div>
+  <div class="row"><button class="btn sm" id="shuf">Shuffle</button></div>`;
+  $("#card").onclick=()=>{S.flip=!S.flip;cards();$("#card").focus()};
+  const go=d=>{S.i=(S.i+d+n)%n;S.flip=false;cards()};
+  $("#prev").onclick=()=>go(-1);
+  $("#learn").onclick=()=>{S.known.delete(S.order[S.i]);go(1)};
+  $("#know").onclick=()=>{S.known.add(S.order[S.i]);go(1)};
+  $("#shuf").onclick=()=>{S.order=shuffle(S.order);S.i=0;S.flip=false;cards()};
+}
+function browse(){
+  const set=SETS[S.set];
+  $("#view").innerHTML=`<div class="list">`+set.items.map(it=>`<details class="item"><summary>${it.e} ${esc(it.w)}<br><span class="tag">${esc(it.pos)}</span></summary>
+    <p style="margin:10px 0 0">${esc(it.def[0].toUpperCase()+it.def.slice(1))}</p>
+    <p style="margin:8px 0 0"><span class="tag">In the book:</span> ${esc(it.book)}</p>
+    <p style="margin:8px 0 0"><span class="tag">Example:</span> ${hl(it.alt)}</p></details>`).join("")+`</div>`;
+}
+function quiz(){
+  const set=SETS[S.set],n=S.q.length;
+  if(S.qi>=n){
+    $("#view").innerHTML=`<div class="score"><b>${S.score}/${n}</b>${S.score==n?"Perfect score!":"Nice work. Try again to beat it."}<div class="row"><button class="btn p" id="again">Play again</button></div></div>`;
+    $("#again").onclick=()=>{reset();quiz()};return;
+  }
+  const it=set.items[S.q[S.qi]];
+  const others=shuffle(set.items.filter(x=>x!==it)).slice(0,3);
+  if(!S.opts||S.optsFor!==S.qi){S.opts=shuffle([it,...others]);S.optsFor=S.qi}
+  const a=S.answered;
+  $("#view").innerHTML=`<div class="meta"><span>Question ${S.qi+1} of ${n}</span><span>Score ${S.score}</span></div>
+  <div class="bar"><i style="width:${S.qi/n*100}%"></i></div>
+  <div class="q">${a?hl(it.alt):gap(it.alt)}</div>
+  <div class="opts">`+S.opts.map((o,k)=>`<button class="opt ${a?(o===it?"ok":(k===a.k?"no":"")):""}" data-k="${k}" ${a?"disabled":""}>${o.e} ${esc(o.w)}</button>`).join("")+`</div>`
+  +(a?`<div class="fb"><b>${a.right?"Correct!":"Not quite."}</b> ${esc(it.w)}: ${esc(it.def)}</div><div class="row"><button class="btn p" id="next">Next</button></div>`:"");
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{const k=+b.dataset.k,right=S.opts[k]===it;if(right)S.score++;S.answered={k,right};quiz()});
+  if(a)$("#next").onclick=()=>{S.qi++;S.answered=null;quiz()};
+}
+document.addEventListener("click",e=>{
+  const s=e.target.closest("[data-set]"),m=e.target.closest("[data-mode]");
+  if(s){S.set=+s.dataset.set;reset();render()}
+  if(m){S.mode=m.dataset.mode;if(S.mode=="quiz"){S.q=shuffle(S.order);S.qi=0;S.score=0;S.answered=null}render()}
+});
+document.addEventListener("keydown",e=>{
+  if(S.mode!=="cards")return;
+  if(e.key==="ArrowRight")$("#know")&&$("#learn").click();
+  if(e.key==="ArrowLeft")$("#prev")&&$("#prev").click();
+  if(e.key===" "&&document.activeElement.tagName!=="BUTTON"){e.preventDefault();$("#card").click()}
+});
+reset();render();
+</script>
+</body>
+</html>
